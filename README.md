@@ -1,97 +1,78 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# BerryBiz Strawberry Shop Manager
 
-# Getting Started
+BerryBiz is an offline-first React Native app for managing orders, products, expenses, and
+performance across Cherry Bliss, Bites & Bowls, Cherry Brownie, and Sugary Spot. App data is stored
+on the device; there is no backend service or live Excel connection.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Features
 
-## Step 1: Start Metro
+- Create customer orders with optional name and phone, item quantities, and calculated totals.
+- Move orders between Pending and Done.
+- Browse the Cherry & Bliss flyer menu by category, add/remove items, and create/share itemized
+  bills.
+- Create UPI payment QR codes for the exact bill amount using the selected stall's UPI ID. Payments
+  are verified manually in the stall's UPI app; there is no payment gateway or automatic payment
+  confirmation.
+- Manage product selling and cost prices and record stall expenses.
+- View daily, weekly, and monthly sales, product costs, expenses, profit/loss, and product/stall
+  performance.
+- Filter the dashboard and insights by day, week, or month, select a calendar date, and view sales
+  in a bar chart (4-hour blocks for a day, days for a week, and weekly groups for a month).
+- Select one stall or the combined owner view.
+- Refresh data manually from an Excel workbook. Rows merge by ID: workbook rows update matching
+  records, new rows are added, and records that only exist in the app are kept.
+- Add removable sample orders and expenses from **Manage → Try sample data** to test dashboards,
+  charts, orders, and reports across all four stalls. The sample dataset includes the last 28 days
+  and the full upcoming calendar month for trying future chart views. Sample records are added
+  without replacing existing data.
+- In development builds, sample data loads automatically when the device has no orders or expenses.
+  A demo banner identifies these records; removing them marks the empty state as intentional so
+  they do not load automatically again.
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+The combined owner view is not password-protected; access is controlled by whoever can unlock the
+device.
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+Profit is calculated as order sales minus recorded item costs and expenses. Pending orders are
+not counted in sales totals until payment is marked as received. Menu prices are transcribed from
+the Cherry & Bliss menu images; item cost prices were not shown, so enter those in Manage for an
+accurate profit report. Product-level profit is gross profit (sales less item costs); stall
+expenses are not allocated to individual products. Cash is marked paid when the bill is created.
+UPI bills stay pending until a person checks the payment and marks it paid.
+
+## Excel workbook format
+
+Use these exact worksheet names and include the listed column headers in each sheet:
+
+| Worksheet     | Required column headers                                                                                                                                                                  |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Stalls        | `stall_id`, `stall_name`, `owner_name`, `phone_number`, `status`, `created_at`                                                                                                           |
+| Products      | `product_id`, `stall_id`, `product_name`, `category`, `price`, `cost_price`, `stock_status`, `status`, `created_at`                                                                      |
+| Orders        | `order_id`, `stall_id`, `customer_name`, `customer_phone`, `order_date`, `order_status`, `subtotal`, `discount`, `total_amount`, `payment_status`, `notes`, `created_at`, `completed_at` |
+| Order Items   | `order_item_id`, `order_id`, `product_id`, `stall_id`, `quantity`, `unit_price`, `cost_price`, `line_total`, `created_at`                                                                |
+| Expenses      | `expense_id`, `stall_id`, `expense_date`, `expense_category`, `description`, `amount`, `created_at`                                                                                      |
+| Sales         | `sale_id`, `order_id`, `stall_id`, `sale_date`, `total_amount`, `payment_method`, `created_at`                                                                                           |
+| Profit & Loss | `profit_loss_id`, `stall_id`, `period_type`, `period_start`, `period_end`, `total_sales`, `total_expenses`, `total_cost`, `profit`, `loss`, `created_at`                                 |
+
+Stall IDs must refer to the four named stalls above. Product, order, and expense IDs should be unique
+within their worksheet; Order Items link to Orders and Products through their IDs. Refresh the
+workbook from **Manage → Refresh from Excel** after changing the file on the device. The refresh is
+manual, not automatic. Sales and Profit & Loss worksheets are validated, then recalculated in the
+app from Orders, Order Items, Products, and Expenses to avoid double-counting report rows.
+
+## Run the app
 
 ```sh
-# Using npm
+npm install
+cd ios && pod install && cd ..
 npm start
-
-# OR using Yarn
-yarn start
 ```
 
-## Step 2: Build and run your app
+In another terminal, run `npm run ios` or `npm run android`.
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
+## Verify
 
 ```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+npm test -- --runInBand
+npx tsc --noEmit
+npx eslint App.tsx src __tests__/App.test.tsx __tests__/cherryBlissMenu.test.ts __tests__/excelImport.test.ts
 ```
-
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
